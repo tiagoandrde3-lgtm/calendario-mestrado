@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendário Seleções Mestrado – Nov/Dez 2026</title>
+<style>
+  :root{--bg:#fafafa;--fg:#1a1a1a;--card:#fff;--bd:#e3e3e3;--mut:#666}
+  @media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#eee;--card:#1e1e1e;--bd:#333;--mut:#999}}
+  *{box-sizing:border-box}
+  body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,sans-serif;max-width:720px;margin-inline:auto}
+  h1{font-size:1.3rem;margin:0 0 12px}
+  h2{font-size:1.1rem;margin:24px 0 8px}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:1}
+  .filters button{border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:999px;padding:6px 14px;font-size:.9rem;cursor:pointer}
+  .filters button.on{background:var(--fg);color:var(--bg)}
+  .day{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin:8px 0}
+  .day.today{outline:2px solid #2a7de1}
+  .date{font-weight:600;font-size:.95rem;margin-bottom:6px}
+  .ev{display:flex;gap:8px;align-items:flex-start;margin:4px 0;font-size:.92rem}
+  .tag{flex:none;font-size:.72rem;font-weight:700;color:#fff;border-radius:6px;padding:2px 7px;margin-top:2px}
+  .UFG{background:#2e7d32}.UFU{background:#1565c0}.UFS{background:#c62828}.Unicamp{background:#ef6c00}.UEG{background:#6a1b9a}.UNESP{background:#00838f}
+  .fin .txt{font-weight:600}
+  .ev.hl{background:rgba(255,179,0,.20);border-left:4px solid #ffb300;border-radius:6px;padding:5px 8px;font-weight:600}
+  .ev.hl .txt::before{content:"★ ";color:#ffb300}
+  .ev.per .txt{color:var(--mut)}
+  .ev.per.hl .txt{color:var(--fg)}
+  .day.trip{border-bottom:4px solid #d32f2f}
+  .date.trip span.d{text-decoration:underline;text-decoration-color:#d32f2f;text-decoration-thickness:3px;text-underline-offset:4px}
+  .badge{display:inline-block;margin-left:8px;font-size:.72rem;font-weight:700;color:#d32f2f;border:1px solid #d32f2f;border-radius:6px;padding:1px 6px}
+  .tripnote{font-size:.85rem;color:#d32f2f;font-weight:600;margin:0 0 6px;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:4px}
+</style>
+</head>
+<body>
+<h1>Seleções de Mestrado · Nov–Dez 2026</h1>
+<div class="filters" id="filters"></div>
+<div id="out"></div>
+
+<script>
+// [dia/mês, universidade, descrição, resultado final? (1/0)]
+const EV = [
+["02/11","UEG","Início da análise interna das inscrições (até 13/12)"],
+["03/11","UFG","Prazo final de recurso contra Comissão de Seleção e Bancas"],
+["03/11","UFU","Resultado da Etapa I – Pré-Projeto Escrito (17h)"],
+["04/11","UFU","Início do prazo de recursos do Pré-Projeto (até 05/11, 23h59)"],
+["05/11","UFG","Resultado final da Comissão; início da Avaliação do Pré-Projeto (até 18/11)"],
+["05/11","UFU","Prazo final de recursos do Pré-Projeto (23h59)"],
+["06/11","UFS","Fim da avaliação dos projetos; resultado da Etapa 1 (até 17h)"],
+["09/11","UFU","Resultado do Pré-Projeto após recursos"],
+["09/11","UFS","Início do prazo recursal da Etapa 1 (até 10/11, 17h)"],
+["10/11","UFS","Prazo final de recurso da Etapa 1 (17h)"],
+["11/11","UFU","Início da Etapa II – Arguição remota (11 a 19/11, 8h–19h)"],
+["11/11","UFS","Resultado da Etapa 1 após recurso (até 17h)"],
+["12/11","Unicamp","Término da avaliação de projetos e Currículo Lattes"],
+["12/11","UFS","Início da Etapa 2 – Defesa por videoconferência (12 a 19/11)"],
+["13/11","Unicamp","Resultado da avaliação de projetos e Lattes"],
+["16/11","Unicamp","Prazo de recursos (protocolo até 17h)"],
+["18/11","UFG","Término da Avaliação do Pré-Projeto"],
+["19/11","UFG","Resultado preliminar da Avaliação do Pré-Projeto"],
+["19/11","UFU","Término da Arguição remota"],
+["19/11","UFS","Término das Defesas (Etapa 2)"],
+["19/11","Unicamp","Resultado dos recursos (projetos e Lattes)"],
+["23/11","UFU","Resultado da Arguição – Etapa II (17h)"],
+["23/11","Unicamp","Início das entrevistas remotas (até 04/12)"],
+["24/11","UFG","Prazo final de recurso da Avaliação do Pré-Projeto"],
+["24/11","UFU","Início do prazo de recursos da Arguição (até 25/11, 23h59)"],
+["24/11","UFS","Resultado da Etapa 2 (até 17h)"],
+["25/11","UFU","Prazo final de recursos da Arguição (23h59)"],
+["25/11","UFS","Início do prazo recursal da Etapa 2 (até 26/11, 17h)"],
+["26/11","UFG","Resultado final da Avaliação do Pré-Projeto"],
+["26/11","UFS","Prazo final de recurso da Etapa 2 (17h)"],
+["27/11","UFG","Cronograma detalhado do Exame Oral"],
+["27/11","UFS","Resultado da Etapa 2 após recursos (até 17h)"],
+["30/11","UFG","Início do Exame Oral (até 08/12)"],
+["30/11","UFU","Resultado da Etapa II após recursos (17h)"],
+["30/11","UFS","Início da avaliação de Lattes e Histórico – Etapa 3 (até 02/12)"],
+["01/12","UFG","Limite: comprovante de língua estrangeira; início da heteroidentificação (até 04/12)"],
+["01/12","UFU","Início da análise de currículo – Etapa III (até 04/12)"],
+["02/12","UFS","Fim da reunião; resultado da Etapa 3 (até 17h)"],
+["03/12","UFS","Início do prazo recursal da Etapa 3 (até 04/12, 17h)"],
+["04/12","UFG","Término da heteroidentificação"],
+["04/12","UFU","Término da análise de currículos"],
+["04/12","Unicamp","Término das entrevistas remotas"],
+["04/12","UFS","Prazo final de recurso da Etapa 3 (17h)"],
+["07/12","UFU","Resultado da Análise de Currículo – Etapa III (17h)"],
+["07/12","UFS","Resultado da Etapa 3 após recursos (até 17h)"],
+["08/12","UFG","Término do Exame Oral"],
+["08/12","UFU","Início do recurso da Análise de Currículo (até 09/12, 23h59)"],
+["08/12","Unicamp","Resultado final preliminar"],
+["08/12","UFS","Resultado geral com todas as etapas (até 17h)"],
+["09/12","UFG","Resultado preliminar do Exame Oral e língua estrangeira"],
+["09/12","UFU","Prazo final de recurso da Análise de Currículo (23h59)"],
+["09/12","Unicamp","Prazo de recurso do resultado preliminar (e-mail até 17h)"],
+["09/12","UFS","Início do prazo recursal do resultado geral (até 10/12, 17h)"],
+["10/12","UFS","Prazo final de recurso do resultado geral (17h)"],
+["11/12","UFG","Prazo final de recurso do Exame Oral e língua estrangeira"],
+["11/12","UFU","Resultado da Etapa III após recursos (17h)"],
+["11/12","Unicamp","RESULTADO FINAL do Processo Seletivo",1],
+["11/12","UFS","RESULTADO FINAL com pontuação e excedentes (até 17h)",1],
+["13/12","UEG","Término da análise interna das inscrições"],
+["14/12","UFU","Resultado preliminar do Processo Seletivo 2027/1 (17h)"],
+["15/12","UFG","Resultado final do Exame Oral e língua estrangeira"],
+["15/12","UFU","Início dos recursos do resultado (até 16/12, 23h59)"],
+["15/12","UEG","Lista de inscrições deferidas/indeferidas; recurso (15 a 16/12)"],
+["16/12","UFG","Resultado preliminar do Processo Seletivo"],
+["16/12","UFU","Prazo final de recurso do resultado (23h59)"],
+["16/12","UEG","Prazo final de recurso contra indeferimento"],
+["18/12","UFG","Prazo final de recurso do resultado preliminar"],
+["18/12","UFU","RESULTADO FINAL do Processo Seletivo 2027/1 (17h)",1],
+["18/12","UEG","Resultado dos recursos e lista definitiva (entrevistas em fev/2027)"],
+["27/11","UNESP","Divulgação da Classificação Preliminar"],
+["27/11","UNESP","Início do prazo de recurso contra as notas (até 29/11)"],
+["29/11","UNESP","Prazo final de recurso contra as notas"],
+["04/12","UNESP","Resultado dos recursos e CLASSIFICAÇÃO FINAL",1],
+["21/12","UFG","RESULTADO FINAL do Processo Seletivo 01/2027",1]
+];
+
+// VIAGEM: altere aqui. meses: ["11"] = novembro, ["12"] = dezembro, ["11","12"] = ambos
+const TRIP = {meses:["11"], ini:9, fim:14};
+const emViagem = (dd,mm) => TRIP.meses.includes(mm) && +dd>=TRIP.ini && +dd<=TRIP.fim;
+
+// Etapas de início (destaque ★ nos eventos de um dia só): "dd/mm|Universidade"
+// Início e fim da arguição (UFU) e das entrevistas (Unicamp)
+const HL = new Set(["11/11|UFU","19/11|UFU","12/11|UFS","19/11|UFS","23/11|Unicamp","04/12|Unicamp"]);
+
+// Períodos que aparecem em TODOS os dias: [início, fim, universidade, nome, destaque(1/0)]
+const PER = [
+["2026-11-11","2026-11-19","UFU","ARGUIÇÃO remota do Pré-Projeto (8h–19h)",1],
+["2026-11-12","2026-11-19","UFS","DEFESA do Projeto por videoconferência (8h–12h e 14h–17h)",1],
+["2026-11-23","2026-12-04","Unicamp","ENTREVISTAS remotas",1]
+];
+
+const fmt = dt => String(dt.getDate()).padStart(2,"0")+"/"+String(dt.getMonth()+1).padStart(2,"0");
+const parse = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+
+function montarTodos(){
+  const all = EV.map(e => [e[0],e[1],e[2],e[3]||0,0,HL.has(e[0]+"|"+e[1])?1:0]);
+  PER.forEach(([ini,fim,uni,nome,hl]) => {
+    const a = parse(ini), b = parse(fim);
+    const n = Math.round((b-a)/86400000)+1;
+    for(let i=0;i<n;i++){
+      const dt = new Date(a.getFullYear(),a.getMonth(),a.getDate()+i);
+      const d = fmt(dt), mm = d.split("/")[1];
+      if(!(mm==="11"||mm==="12")) continue;
+      const ja = EV.some(e => e[0]===d && e[1]===uni && /nício|Término|Fim/i.test(e[2]));
+      if((i===0||i===n-1) && ja) continue;
+      const tag = i===0 ? " · INÍCIO" : i===n-1 ? " · ÚLTIMO DIA" : "";
+      all.push([d,uni,`${nome} — dia ${i+1}/${n}${tag}`,0,1,hl]);
+    }
+  });
+  return all;
+}
+const TODOS = montarTodos();
+
+const unis = ["Todas","UFG","UFU","UFS","Unicamp","UEG","UNESP"];
+const dias = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+const meses = {"11":"Novembro","12":"Dezembro"};
+let filtro = "Todas";
+
+function render(){
+  const out = document.getElementById("out");
+  const now = new Date();
+  const hoje = String(now.getDate()).padStart(2,"0")+"/"+String(now.getMonth()+1).padStart(2,"0")+"/"+now.getFullYear();
+  const porDia = {};
+  TODOS.filter(e => filtro==="Todas" || e[1]===filtro).forEach(e => (porDia[e[0]] ||= []).push(e));
+  let html = "", mesAtual = "";
+  const chave = d => d.split("/").reverse().join("");
+  Object.keys(porDia).sort((x,y)=>chave(x).localeCompare(chave(y))).forEach(d => {
+    const [dd,mm] = d.split("/");
+    if(mm!==mesAtual){
+      mesAtual=mm; html += `<h2>${meses[mm]} de 2026</h2>`;
+      if(TRIP.meses.includes(mm)) html += `<p class="tripnote">✈ Viagem de ${String(TRIP.ini).padStart(2,"0")} a ${String(TRIP.fim).padStart(2,"0")}/${mm}: etapas desses dias serão feitas durante a viagem</p>`;
+    }
+    const dt = new Date(2026, +mm-1, +dd);
+    const isHoje = (d+"/2026")===hoje;
+    const v = emViagem(dd,mm);
+    html += `<div class="day${isHoje?" today":""}${v?" trip":""}"><div class="date${v?" trip":""}"><span class="d">${d} · ${dias[dt.getDay()]}</span>${v?'<span class="badge">✈ VIAGEM</span>':''}</div>`;
+    porDia[d].sort((x,y)=>y[5]-x[5]).forEach(e => {
+      html += `<div class="ev${e[3]?" fin":""}${e[4]?" per":""}${e[5]?" hl":""}"><span class="tag ${e[1]}">${e[1]}</span><span class="txt">${e[2]}</span></div>`;
+    });
+    html += `</div>`;
+  });
+  out.innerHTML = html || "<p>Nenhum evento.</p>";
+}
+
+const f = document.getElementById("filters");
+unis.forEach(u => {
+  const b = document.createElement("button");
+  b.textContent = u; if(u===filtro) b.className="on";
+  b.onclick = () => { filtro=u; [...f.children].forEach(x=>x.className = x===b?"on":""); render(); };
+  f.appendChild(b);
+});
+render();
+</script>
+</body>
+</html>
