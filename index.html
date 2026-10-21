@@ -71,6 +71,9 @@ const EV = [
 ["26/11","UFS","Prazo final de recurso da Etapa 2 (17h)"],
 ["27/11","UFG","Cronograma detalhado do Exame Oral"],
 ["27/11","UFS","Resultado da Etapa 2 após recursos (até 17h)"],
+["27/11","UNESP","Divulgação da Classificação Preliminar"],
+["27/11","UNESP","Início do prazo de recurso contra as notas (até 29/11)"],
+["29/11","UNESP","Prazo final de recurso contra as notas"],
 ["30/11","UFG","Início do Exame Oral (até 08/12)"],
 ["30/11","UFU","Resultado da Etapa II após recursos (17h)"],
 ["30/11","UFS","Início da avaliação de Lattes e Histórico – Etapa 3 (até 02/12)"],
@@ -82,6 +85,7 @@ const EV = [
 ["04/12","UFU","Término da análise de currículos"],
 ["04/12","Unicamp","Término das entrevistas remotas"],
 ["04/12","UFS","Prazo final de recurso da Etapa 3 (17h)"],
+["04/12","UNESP","Resultado dos recursos e CLASSIFICAÇÃO FINAL",1],
 ["07/12","UFU","Resultado da Análise de Currículo – Etapa III (17h)"],
 ["07/12","UFS","Resultado da Etapa 3 após recursos (até 17h)"],
 ["08/12","UFG","Término do Exame Oral"],
@@ -108,10 +112,6 @@ const EV = [
 ["18/12","UFG","Prazo final de recurso do resultado preliminar"],
 ["18/12","UFU","RESULTADO FINAL do Processo Seletivo 2027/1 (17h)",1],
 ["18/12","UEG","Resultado dos recursos e lista definitiva (entrevistas em fev/2027)"],
-["27/11","UNESP","Divulgação da Classificação Preliminar"],
-["27/11","UNESP","Início do prazo de recurso contra as notas (até 29/11)"],
-["29/11","UNESP","Prazo final de recurso contra as notas"],
-["04/12","UNESP","Resultado dos recursos e CLASSIFICAÇÃO FINAL",1],
 ["21/12","UFG","RESULTADO FINAL do Processo Seletivo 01/2027",1]
 ];
 
@@ -120,7 +120,6 @@ const TRIP = {meses:["11"], ini:9, fim:14};
 const emViagem = (dd,mm) => TRIP.meses.includes(mm) && +dd>=TRIP.ini && +dd<=TRIP.fim;
 
 // Etapas de início/fim (destaque ★ nos eventos de um dia só): "dd/mm|Universidade"
-// Arguição (UFU), Defesa (UFS), Entrevistas (Unicamp) e Exame Oral (UFG)
 const HL = new Set(["11/11|UFU","19/11|UFU","12/11|UFS","19/11|UFS","23/11|Unicamp","04/12|Unicamp","30/11|UFG","08/12|UFG"]);
 
 // Períodos que aparecem em TODOS os dias: [início, fim, universidade, nome, destaque(1/0)]
@@ -143,10 +142,11 @@ function montarTodos(){
       const dt = new Date(a.getFullYear(),a.getMonth(),a.getDate()+i);
       const d = fmt(dt), mm = d.split("/")[1];
       if(!(mm==="11"||mm==="12")) continue;
-      const ja = EV.some(e => e[0]===d && e[1]===uni && /nício|Término|Fim/i.test(e[2]));
-      if((i===0||i===n-1) && ja) continue;
-      const tag = i===0 ? " · INÍCIO" : i===n-1 ? " · ÚLTIMO DIA" : "";
-      all.push([d,uni,`${nome} — dia ${i+1}/${n}${tag}`,0,1,hl]);
+      
+      const jaExiste = EV.some(e => e[0]===d && e[1]===uni && /início|término|fim|defesa|arguição|entrevista|exame oral/i.test(e[2]));
+      if((i===0 || i===n-1) && jaExiste) continue;
+      
+      all.push([d,uni,`${nome} — dia ${i+1}/${n}`,0,1,hl]);
     }
   });
   return all;
