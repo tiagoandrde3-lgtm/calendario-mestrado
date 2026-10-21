@@ -119,15 +119,16 @@ const EV = [
 const TRIP = {meses:["11"], ini:9, fim:14};
 const emViagem = (dd,mm) => TRIP.meses.includes(mm) && +dd>=TRIP.ini && +dd<=TRIP.fim;
 
-// Etapas de início (destaque ★ nos eventos de um dia só): "dd/mm|Universidade"
-// Início e fim da arguição (UFU) e das entrevistas (Unicamp)
-const HL = new Set(["11/11|UFU","19/11|UFU","12/11|UFS","19/11|UFS","23/11|Unicamp","04/12|Unicamp"]);
+// Etapas de início/fim (destaque ★ nos eventos de um dia só): "dd/mm|Universidade"
+// Arguição (UFU), Defesa (UFS), Entrevistas (Unicamp) e Exame Oral (UFG)
+const HL = new Set(["11/11|UFU","19/11|UFU","12/11|UFS","19/11|UFS","23/11|Unicamp","04/12|Unicamp","30/11|UFG","08/12|UFG"]);
 
 // Períodos que aparecem em TODOS os dias: [início, fim, universidade, nome, destaque(1/0)]
 const PER = [
 ["2026-11-11","2026-11-19","UFU","ARGUIÇÃO remota do Pré-Projeto (8h–19h)",1],
 ["2026-11-12","2026-11-19","UFS","DEFESA do Projeto por videoconferência (8h–12h e 14h–17h)",1],
-["2026-11-23","2026-12-04","Unicamp","ENTREVISTAS remotas",1]
+["2026-11-23","2026-12-04","Unicamp","ENTREVISTAS remotas",1],
+["2026-11-30","2026-12-08","UFG","EXAME ORAL",1]
 ];
 
 const fmt = dt => String(dt.getDate()).padStart(2,"0")+"/"+String(dt.getMonth()+1).padStart(2,"0");
