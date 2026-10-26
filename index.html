@@ -190,7 +190,13 @@ const meses = {"11":"Novembro","12":"Dezembro"};
 let filtro = "Todas";
 let busca = "";
 const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
-const casa = e => { const t = norm(e[0]+" "+e[1]+" "+e[2]); return norm(busca).split(/\s+/).filter(Boolean).every(w => t.includes(w)); };
+const casa = e => {
+  const [dd,mm] = e[0].split("/");
+  const dt = new Date(2026,+mm-1,+dd);
+  const extra = dias[dt.getDay()]+" "+meses[mm]+" 2026"+(emViagem(dd,mm)?" viagem":"");
+  const t = norm(e[0]+" "+e[1]+" "+e[2]+" "+extra);
+  return norm(busca).split(/\s+/).filter(Boolean).every(w => t.includes(w));
+};
 
 function render(){
   const out = document.getElementById("out");
@@ -215,7 +221,7 @@ function render(){
     });
     html += `</div>`;
   });
-  out.innerHTML = html || "<p>Nenhum evento.</p>";
+  out.innerHTML = html || ("<p>Nenhum evento"+(filtro!=="Todas" ? " com o filtro “"+filtro+"”. Selecione “Todas” para buscar em todas as universidades" : "")+".</p>");
 }
 
 const f = document.getElementById("filters");
