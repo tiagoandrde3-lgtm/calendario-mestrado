@@ -189,7 +189,7 @@ const dias = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 const meses = {"11":"Novembro","12":"Dezembro"};
 let filtro = "Todas";
 let busca = "";
-const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const norm = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const casa = e => {
   const [dd,mm] = e[0].split("/");
   const dt = new Date(2026,+mm-1,+dd);
@@ -202,11 +202,18 @@ function render(){
   const out = document.getElementById("out");
   const now = new Date();
   const hoje = String(now.getDate()).padStart(2,"0")+"/"+String(now.getMonth()+1).padStart(2,"0")+"/"+now.getFullYear();
+  // Na tela inicial (filtro "Todas" e sem busca) esconde os dias que já passaram.
+  // Nos filtros de cada universidade o calendário continua completo.
+  const hojeK = String(now.getMonth()+1).padStart(2,"0") + String(now.getDate()).padStart(2,"0"); // "mmdd"
+  const ocultaPassados = filtro==="Todas" && !busca;
   const porDia = {};
   TODOS.filter(e => (filtro==="Todas" || (filtro===ORAL ? ehOral(e) : e[1]===filtro)) && casa(e)).forEach(e => (porDia[e[0]] ||= []).push(e));
   let html = "", mesAtual = "";
   const chave = d => d.split("/").reverse().join("");
-  Object.keys(porDia).sort((x,y)=>chave(x).localeCompare(chave(y))).forEach(d => {
+  Object.keys(porDia)
+    .filter(d => !ocultaPassados || chave(d) >= hojeK)
+    .sort((x,y)=>chave(x).localeCompare(chave(y)))
+    .forEach(d => {
     const [dd,mm] = d.split("/");
     if(mm!==mesAtual){
       mesAtual=mm; html += `<h2>${meses[mm]} de 2026</h2>`;
